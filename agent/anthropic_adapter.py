@@ -512,13 +512,20 @@ def _read_claude_code_credentials_from_keychain() -> Optional[Dict[str, Any]]:
         logger.debug("Keychain: no entry found for 'Claude Code-credentials'")
         return None
 
-    raw = result.stdout.strip()
+    raw_stdout = result.stdout
+    if isinstance(raw_stdout, bytes):
+        raw_stdout = raw_stdout.decode("utf-8", errors="replace")
+    if not isinstance(raw_stdout, str):
+        logger.debug("Keychain: credentials payload is not text")
+        return None
+
+    raw = raw_stdout.strip()
     if not raw:
         return None
 
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
         logger.debug("Keychain: credentials payload is not valid JSON")
         return None
 
@@ -1711,5 +1718,4 @@ def build_anthropic_kwargs(
         kwargs["extra_headers"] = {"anthropic-beta": ",".join(betas)}
 
     return kwargs
-
 
