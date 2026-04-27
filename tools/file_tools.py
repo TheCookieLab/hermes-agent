@@ -153,7 +153,12 @@ _SENSITIVE_PATH_PREFIXES = (
     "/etc/", "/boot/", "/usr/lib/systemd/",
     "/private/etc/", "/private/var/db/", "/var/db/",
 )
-_SENSITIVE_EXACT_PATHS = {"/var/run/docker.sock", "/run/docker.sock"}
+_SENSITIVE_EXACT_PATHS = {
+    "/private/var/db",
+    "/var/db",
+    "/var/run/docker.sock",
+    "/run/docker.sock",
+}
 
 
 def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None:
