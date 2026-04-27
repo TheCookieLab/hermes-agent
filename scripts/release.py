@@ -66,6 +66,7 @@ AUTHOR_MAP = {
     "foxion37@gmail.com": "foxion37",
     "bloodcarter@gmail.com": "bloodcarter",
     # contributors (from noreply pattern)
+    "davidzhe@gmail.com": "TheCookieLab",
     "david.vv@icloud.com": "davidvv",
     "wangqiang@wangqiangdeMac-mini.local": "xiaoqiang243",
     "snreynolds2506@gmail.com": "snreynolds",

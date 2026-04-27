@@ -9622,11 +9622,36 @@ class GatewayRunner:
         except Exception:
             pass
 
-        # Tool progress mode — resolved per-platform with env var fallback
+        # Tool progress mode — resolved per-platform with env var fallback.
+        # Keep the deprecated env var able to override built-in platform
+        # defaults, but not explicit config.yaml choices.
+        _env_tool_progress_mode = os.getenv("HERMES_TOOL_PROGRESS_MODE")
+        _display_platforms = display_config.get("platforms")
+        _platform_display = (
+            _display_platforms.get(platform_key)
+            if isinstance(_display_platforms, dict)
+            else None
+        )
+        _legacy_tool_progress_overrides = display_config.get("tool_progress_overrides")
+        _explicit_tool_progress = (
+            "tool_progress" in display_config
+            or (
+                isinstance(_platform_display, dict)
+                and "tool_progress" in _platform_display
+            )
+            or (
+                isinstance(_legacy_tool_progress_overrides, dict)
+                and platform_key in _legacy_tool_progress_overrides
+            )
+        )
         _resolved_tp = resolve_display_setting(user_config, platform_key, "tool_progress")
         progress_mode = (
+            _env_tool_progress_mode
+            if _env_tool_progress_mode and not _explicit_tool_progress
+            else None
+        ) or (
             _resolved_tp
-            or os.getenv("HERMES_TOOL_PROGRESS_MODE")
+            or _env_tool_progress_mode
             or "all"
         )
         # Disable tool progress for webhooks - they don't support message editing,

@@ -184,8 +184,17 @@ _HERMES_BEHAVIORAL_VARS = frozenset({
     "HERMES_BACKGROUND_NOTIFICATIONS",
     "HERMES_EXEC_ASK",
     "HERMES_HOME_MODE",
+    "HERMES_IGNORE_USER_CONFIG",
+    "HERMES_IGNORE_RULES",
+    "HERMES_MODEL",
+    "HERMES_INFERENCE_MODEL",
+    "HERMES_TUI_PROVIDER",
+    "HERMES_VOICE",
+    "HERMES_VOICE_TTS",
     "BROWSER_CDP_URL",
     "CAMOFOX_URL",
+    "TERMINAL_ENV",
+    "TERMINAL_CWD",
     # Platform allowlists — not credentials, but if set from any source
     # (user shell, earlier leaky test, CI env), they change gateway auth
     # behavior and flake button-authorization tests.
@@ -222,10 +231,28 @@ _HERMES_BEHAVIORAL_VARS = frozenset({
     "SLACK_REACTIONS",
     "DISCORD_REQUIRE_MENTION",
     "DISCORD_FREE_RESPONSE_CHANNELS",
+    "DISCORD_AUTO_THREAD",
+    "DISCORD_REACTIONS",
+    "DISCORD_IGNORED_CHANNELS",
+    "DISCORD_ALLOWED_CHANNELS",
+    "DISCORD_NO_THREAD_CHANNELS",
+    "DISCORD_ALLOW_MENTIONS",
+    "DISCORD_AUTO_MENTION_RESPONSES",
     "TELEGRAM_REQUIRE_MENTION",
+    "TELEGRAM_MENTION_PATTERNS",
     "WHATSAPP_REQUIRE_MENTION",
+    "WHATSAPP_MENTION_PATTERNS",
+    "WHATSAPP_FREE_RESPONSE_CHATS",
+    "WHATSAPP_DM_POLICY",
+    "WHATSAPP_GROUP_POLICY",
+    "WHATSAPP_GROUP_ALLOWED_USERS",
     "DINGTALK_REQUIRE_MENTION",
+    "DINGTALK_MENTION_PATTERNS",
+    "DINGTALK_FREE_RESPONSE_CHATS",
     "MATRIX_REQUIRE_MENTION",
+    "MATRIX_FREE_RESPONSE_ROOMS",
+    "MATRIX_AUTO_THREAD",
+    "MATRIX_DM_MENTION_THREADS",
 })
 
 
@@ -393,6 +420,26 @@ def _reset_module_state():
             _ft_mod._read_tracker.clear()
         with _ft_mod._file_ops_lock:
             _ft_mod._file_ops_cache.clear()
+    except Exception:
+        pass
+
+    # --- tools.terminal_tool — live execution environments ---
+    # File/path helpers consult the active terminal environment before
+    # falling back to TERMINAL_CWD.  Stale environments from earlier tests
+    # must not change path resolution for later tests.
+    try:
+        from tools import terminal_tool as _terminal_mod
+        envs_to_cleanup = []
+        with _terminal_mod._env_lock:
+            envs_to_cleanup = list(_terminal_mod._active_environments.values())
+            _terminal_mod._active_environments.clear()
+        for _env in envs_to_cleanup:
+            try:
+                cleanup = getattr(_env, "cleanup", None)
+                if callable(cleanup):
+                    cleanup()
+            except Exception:
+                pass
     except Exception:
         pass
 

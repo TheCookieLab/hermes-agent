@@ -44,7 +44,14 @@ PYTHON="$VENV/bin/python"
 # ── Ensure pytest-split is installed (required for shard-equivalent runs) ──
 if ! "$PYTHON" -c "import pytest_split" 2>/dev/null; then
   echo "→ installing pytest-split into $VENV"
-  "$PYTHON" -m pip install --quiet "pytest-split>=0.9,<1"
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install --python "$PYTHON" --quiet "pytest-split>=0.9,<1"
+  elif "$PYTHON" -m pip --version >/dev/null 2>&1; then
+    "$PYTHON" -m pip install --quiet "pytest-split>=0.9,<1"
+  else
+    echo "error: pytest-split is missing and neither uv nor pip is available to install it" >&2
+    exit 1
+  fi
 fi
 
 # ── Hermetic environment ────────────────────────────────────────────────────
@@ -70,7 +77,9 @@ unset HERMES_YOLO_MODE HERMES_INTERACTIVE HERMES_QUIET HERMES_TOOL_PROGRESS \
       HERMES_PLATFORM HERMES_INFERENCE_PROVIDER HERMES_MANAGED HERMES_DEV \
       HERMES_CONTAINER HERMES_EPHEMERAL_SYSTEM_PROMPT HERMES_TIMEZONE \
       HERMES_REDACT_SECRETS HERMES_BACKGROUND_NOTIFICATIONS HERMES_EXEC_ASK \
-      HERMES_HOME_MODE 2>/dev/null || true
+      HERMES_HOME_MODE HERMES_IGNORE_USER_CONFIG HERMES_IGNORE_RULES \
+      HERMES_MODEL HERMES_INFERENCE_MODEL HERMES_TUI_PROVIDER \
+      HERMES_VOICE HERMES_VOICE_TTS TERMINAL_ENV TERMINAL_CWD 2>/dev/null || true
 
 # Pin deterministic runtime.
 export TZ=UTC

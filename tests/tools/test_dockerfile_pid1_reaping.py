@@ -39,8 +39,10 @@ def _dockerfile_instructions(dockerfile_text: str) -> list[str]:
         if not line or line.startswith("#"):
             continue
 
-        current = f"{current} {line.removesuffix('\\').strip()}".strip()
-        if not line.endswith("\\"):
+        continued = line.endswith("\\")
+        segment = line[:-1].strip() if continued else line
+        current = f"{current} {segment}".strip()
+        if not continued:
             instructions.append(current)
             current = ""
 
