@@ -310,8 +310,8 @@ class TestMinimaxPreserveDots:
 
     def test_normalize_converts_without_preserve(self):
         from agent.anthropic_adapter import normalize_model_name
-        # Without preserve_dots, dots become hyphens (broken for MiniMax)
-        assert normalize_model_name("MiniMax-M2.7", preserve_dots=False) == "MiniMax-M2-7"
+        # MiniMax IDs keep release dots even on the legacy non-preserve path.
+        assert normalize_model_name("MiniMax-M2.7", preserve_dots=False) == "MiniMax-M2.7"
 
 
 class TestMinimaxSwitchModelCredentialGuard:

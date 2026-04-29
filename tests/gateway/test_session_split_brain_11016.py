@@ -132,14 +132,14 @@ class TestAdapterSessionCancellation:
 
         adapter._message_handler = _handler
 
-        await adapter.handle_message(_make_event("hello world"))
-        await processing_started.wait()
+        await asyncio.wait_for(adapter.handle_message(_make_event("hello world")), timeout=1.0)
+        await asyncio.wait_for(processing_started.wait(), timeout=1.0)
         await asyncio.sleep(0)
 
         assert sk in adapter._active_sessions
         assert sk in adapter._session_tasks
 
-        await adapter.handle_message(_make_event(command_text))
+        await asyncio.wait_for(adapter.handle_message(_make_event(command_text)), timeout=1.0)
 
         assert processing_cancelled.is_set(), (
             f"{command_text} did not cancel the active processing task"
@@ -151,11 +151,16 @@ class TestAdapterSessionCancellation:
         assert any(f"handled:{expected}" in r for r in adapter.sent_responses)
 
         # Follow-up must go through normally now that the session is clean.
-        await adapter.handle_message(
-            _make_event("/model xiaomi/mimo-v2-pro --provider nous")
+        await asyncio.wait_for(
+            adapter.handle_message(
+                _make_event("/model xiaomi/mimo-v2-pro --provider nous")
+            ),
+            timeout=1.0,
         )
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
+        for _ in range(20):
+            if any("handled:model" in r for r in adapter.sent_responses):
+                break
+            await asyncio.sleep(0.05)
 
         assert any("handled:model" in r for r in adapter.sent_responses), (
             f"follow-up /model stayed blocked after {command_text}"

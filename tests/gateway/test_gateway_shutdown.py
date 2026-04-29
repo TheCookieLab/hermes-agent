@@ -21,14 +21,14 @@ async def test_cancel_background_tasks_cancels_inflight_message_processing():
     adapter.set_message_handler(block_forever)
     event = MessageEvent(text="work", source=make_restart_source(), message_id="1")
 
-    await adapter.handle_message(event)
+    await asyncio.wait_for(adapter.handle_message(event), timeout=1.0)
     await asyncio.sleep(0)
 
     session_key = build_session_key(event.source)
     assert session_key in adapter._active_sessions
     assert adapter._background_tasks
 
-    await adapter.cancel_background_tasks()
+    await asyncio.wait_for(adapter.cancel_background_tasks(), timeout=1.0)
 
     assert adapter._background_tasks == set()
     assert adapter._active_sessions == {}

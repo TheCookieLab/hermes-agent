@@ -8,6 +8,7 @@ still opt-in; exclusive kind skipped; unknown kinds → standalone warning).
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any, Dict
 
@@ -196,7 +197,7 @@ class TestKindField:
         )
         _enable(hermes_home, "p1")
 
-        with caplog.at_level("WARNING"):
+        with caplog.at_level(logging.WARNING, logger="hermes_cli.plugins"):
             mgr = PluginManager()
             mgr.discover_and_load()
 
